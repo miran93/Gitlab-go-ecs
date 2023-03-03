@@ -26,3 +26,15 @@ jobs:
       env:
        GOPROXY: "https://proxy.golang.org"
       run: go test -v .
+    - name: Zip
+      run: |
+        sudo apt-get update && sudo apt-get install -y zip && \
+        zip -9 -r main.zip main.go vendor app config lib
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Upload to Lambda
+      run: aws lambda update-function-code --function-name  arn:aws:lambda:us-east-1:282510063790:function:GoApplication --zip-file fileb://main.zip
