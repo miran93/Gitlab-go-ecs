@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      golang: 1.18
+    commands:
+      - echo "installing golang"
+  pre_build:
+    commands:
+      - echo "inside pre_build..."
+  build:
+    commands:
+      - echo "Start build..."
+      - cd $CODEBUILD_SRC_DIR && go build
+      - cd $CODEBUILD_SRC_DIR && go test
+  post_build:
+    commands:
+      - echo "Start post_build..."
