@@ -7,7 +7,7 @@ build:
   stage: build
   image: golang:latest
   script:
-    - go build -o app
+    - go build -o myapp
 
 package:
   stage: package
@@ -18,7 +18,7 @@ package:
     paths:
       - app
   script:
-    - tar -czf app.tar.gz app
+    - tar -czf myapp.tar.gz app
 
 deploy:
   stage: deploy
