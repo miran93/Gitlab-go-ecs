@@ -12,8 +12,10 @@ build:
 
 deploy:
   stage: deploy
-  image: alpine
+  image: ubuntu
   script:
+    - apt-get update
+    - apt-get install -y openssh-client
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
     - chmod 600 id_rsa
     - scp -i id_rsa -o StrictHostKeyChecking=no -r ./$CI_PROJECT_NAME $EC2_USER@$EC2_HOST:/home/$EC2_USER/
