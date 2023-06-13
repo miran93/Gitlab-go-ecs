@@ -15,6 +15,6 @@ deploy:
   image: alpine
   script:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
-    - apk add --update openssh-client
-    - scp -i id_rsa -o StrictHostKeyChecking=no app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'unzip /home/$EC2_USER/app.zip && chmod +x /home/$EC2_USER/app && /home/$EC2_USER/app'
+    - chmod 600 id_rsa
+    - scp -i id_rsa -o StrictHostKeyChecking=no -r ./$CI_PROJECT_NAME $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'cd /home/$EC2_USER/$CI_PROJECT_NAME && go build -o app && nohup ./app &'
