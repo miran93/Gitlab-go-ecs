@@ -1,33 +1,22 @@
-image: golang:1.16
-
 stages:
   - build
   - deploy
 
-variables:
-  EB_ENVIRONMENT_NAME: "GoGitLab-env"
-  EB_APPLICATION_NAME: "GoGitLab"
-  AWS_DEFAULT_REGION: "us-east-1"
-
-before_script:
-  - apt-get update -y
-  - apt-get install zip -y
-  - go get -v github.com/aws/aws-sdk-go/...
-
 build:
   stage: build
+  image: golang:latest
   script:
-    - go build -o myapp
+    - go build -o app
+    - zip app.zip app
 
 deploy:
   stage: deploy
+  image: ubuntu:latest
+  before_script:
+    - apt update && apt install -y openssh-client
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host $EC2_HOST\n\tStrictHostKeyChecking no\n\tUser $EC2_USER\n\n" >> ~/.ssh/config
   script:
-    - zip -r myapp.zip . -i myapp
-    - apt-get install -y awscli
-    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-    - aws configure set default.region $AWS_DEFAULT_REGION
-    - aws configure set default.output json
-    - aws s3 cp myapp.zip s3://go-app-bucket/myapp.zip
-    - aws elasticbeanstalk create-application-version --application-name $EB_APPLICATION_NAME --version-label $CI_COMMIT_SHORT_SHA --source-bundle S3Bucket="go-app-bucket",S3Key=myapp.zip
-    - aws elasticbeanstalk update-environment --environment-name $EB_ENVIRONMENT_NAME --version-label $CI_COMMIT_SHORT_SHA
+    - scp app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh $EC2_USER@$EC2_HOST 'unzip app.zip && chmod +x app && ./app'
