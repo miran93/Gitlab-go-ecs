@@ -12,13 +12,17 @@ build:
 package:
   stage: package
   image: ubuntu:latest
-  dependencies:
-    - build
+  before_script:
+    - apt-get update
+    - apt-get install zip -y
+  script:
+    - echo "Archiving lambda code"
+    - zip -r $CI_PROJECT_NAME.zip *
+
   artifacts:
     paths:
-      - app
-  script:
-    - tar -czf myapp.tar.gz app
+      - $CI_PROJECT_NAME.zip
+
 
 deploy:
   stage: deploy
@@ -33,5 +37,5 @@ deploy:
     - apt-get update -y
     - apt-get -y install rsync
   script:
-    - scp -r -i $id_rsa myapp.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i $id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/myapp.tar.gz -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
+    - scp -r -i $id_rsa $CI_PROJECT_NAME.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh -i $id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/$CI_PROJECT_NAME.zip -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
