@@ -13,10 +13,10 @@ build:
 deploy:
   stage: deploy
   image: ubuntu
-  script:
-    - apt-get update
-    - apt-get install -y openssh-client
+  before_script:
+    - apt-get update && apt-get install -y openssh-client
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
     - chmod 600 id_rsa
-    - scp -i id_rsa -o StrictHostKeyChecking=no -r ./$CI_PROJECT_NAME $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'cd /home/$EC2_USER/$CI_PROJECT_NAME && go build -o app && nohup ./app &'
+  script:
+    - scp -i id_rsa -o StrictHostKeyChecking=no app $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
