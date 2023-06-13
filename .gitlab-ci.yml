@@ -34,4 +34,4 @@ deploy:
     - apt-get -y install rsync
   script:
     - scp -r -i $id_rsa app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i $id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/app.tar.gz -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
+    - ssh -i $id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/myapp.tar.gz -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
