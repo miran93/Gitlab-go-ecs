@@ -8,6 +8,7 @@ build:
   image: golang:latest
   script:
     - go build -o myapp
+    - ls -l
 
 package:
   stage: package
@@ -15,10 +16,12 @@ package:
   before_script:
     - apk add zip
   script:
+    - mv myapp /tmp/myapp
+    - cd /tmp
     - zip myapp.zip myapp
   artifacts:
     paths:
-      - myapp.zip
+      - /tmp/myapp.zip
 
 deploy:
   stage: deploy
