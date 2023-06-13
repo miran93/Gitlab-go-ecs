@@ -1,27 +1,13 @@
 stages:
   - build
-  - package
   - deploy
 
 build:
   stage: build
   image: golang:latest
   script:
-    - go build -o myapp
-    - ls -l
-
-package:
-  stage: package
-  image: alpine:latest
-  before_script:
-    - apk add zip
-  script:
-    - mv myapp /tmp/myapp
-    - cd /tmp
-    - zip myapp.zip myapp
-  artifacts:
-    paths:
-      - /tmp/myapp.zip
+    - go build -o app
+    - tar -czvf app.tar.gz app
 
 deploy:
   stage: deploy
