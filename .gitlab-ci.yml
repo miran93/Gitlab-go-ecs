@@ -24,8 +24,14 @@ deploy:
   stage: deploy
   image: ubuntu:latest
   before_script:
-    - apt-get update && apt-get install -y openssh-client
-    - echo "$SSH_PRIVATE_KEY" > id_rsa
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh 
+    - chmod 400 $ID_RSA
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - apt-get update -y
+    - apt-get -y install rsync
   script:
-    - scp -i id_rsa -o StrictHostKeyChecking=no app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - scp -r -i id_rsa app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
     - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/app.tar.gz -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
