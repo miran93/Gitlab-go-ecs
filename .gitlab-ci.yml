@@ -11,7 +11,7 @@ build:
 
 package:
   stage: package
-  image: windows:latest
+  image: mcr.microsoft.com/windows/servercore:ltsc2019
   dependencies:
     - build
   artifacts:
@@ -22,7 +22,7 @@ package:
 
 deploy:
   stage: deploy
-  image: windows:latest
+  image: mcr.microsoft.com/windows/servercore:ltsc2019
   before_script:
     - choco install openssh
     - echo "$SSH_PRIVATE_KEY" > id_rsa
