@@ -7,16 +7,18 @@ build:
   stage: build
   image: golang:latest
   script:
-    - go mod download
     - go build -o myapp
 
 package:
   stage: package
-  image: ubuntu:latest
+  image: alpine:latest
   before_script:
-    - apt-get update && apt-get install -y zip
+    - apk add zip
   script:
-    - zip app.zip myapp
+    - zip myapp.zip myapp
+  artifacts:
+    paths:
+      - myapp.zip
 
 deploy:
   stage: deploy
@@ -29,4 +31,4 @@ deploy:
     - echo -e "Host $EC2_HOST\n\tStrictHostKeyChecking no\n\tUser $EC2_USER\n\n" >> ~/.ssh/config
   script:
     - scp app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh $EC2_USER@$EC2_HOST 'unzip app.zip && chmod +x app && ./app'
+    - ssh $EC2_USER@$EC2_HOST 'unzip myapp.zip && chmod +x app && ./app'
