@@ -7,7 +7,7 @@ build:
   image: golang:latest
   script:
     - go build -o app
-    - C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command "Compress-Archive -Path .\app -DestinationPath app.zip"
+    - 7z a app.zip app
 
 deploy:
   stage: deploy
