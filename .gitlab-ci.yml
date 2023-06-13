@@ -15,7 +15,8 @@ package:
   before_script:
     - apt-get update && apt-get install -y zip
   script:
-    - mv myapp ./build/
+    - mkdir build
+    - cp myapp build/
     - cd build/
     - zip app.zip myapp
 
