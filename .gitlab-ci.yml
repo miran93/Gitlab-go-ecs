@@ -12,13 +12,9 @@ build:
 
 deploy:
   stage: deploy
-  image: ubuntu:latest
-  before_script:
-    - apt update && apt install -y openssh-client
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
-    - chmod 600 id_rsa
-    - mkdir -p ~/.ssh && mv id_rsa ~/.ssh/id_rsa
-    - echo -e "Host $EC2_HOST\n\tStrictHostKeyChecking no\n\tUser $EC2_USER\n\n" >> ~/.ssh/config
+  image: alpine
   script:
-    - scp app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh $EC2_USER@$EC2_HOST 'unzip app.zip && chmod +x app && ./app'
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
+    - apk add --update openssh-client
+    - scp -i id_rsa -o StrictHostKeyChecking=no app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'unzip /home/$EC2_USER/app.zip && chmod +x /home/$EC2_USER/app && /home/$EC2_USER/app'
