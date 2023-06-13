@@ -14,8 +14,9 @@ deploy:
   image: ubuntu:latest
   before_script:
     - apt update && apt install -y openssh-client
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
+    - chmod 600 id_rsa
+    - mkdir -p ~/.ssh && mv id_rsa ~/.ssh/id_rsa
     - echo -e "Host $EC2_HOST\n\tStrictHostKeyChecking no\n\tUser $EC2_USER\n\n" >> ~/.ssh/config
   script:
     - scp app.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
