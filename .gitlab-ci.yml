@@ -1,5 +1,6 @@
 stages:
   - build
+  - package
   - deploy
 
 build:
@@ -7,8 +8,17 @@ build:
   image: golang:latest
   script:
     - go build -o app
-    - apt-get update && apt-get install -y zip
-    - zip -r app.zip app
+
+package:
+  stage: package
+  image: alpine
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - app
+  script:
+    - tar -czf app.tar.gz app
 
 deploy:
   stage: deploy
@@ -18,5 +28,5 @@ deploy:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > id_rsa
     - chmod 600 id_rsa
   script:
-    - scp -i id_rsa -o StrictHostKeyChecking=no app $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
+    - scp -i id_rsa -o StrictHostKeyChecking=no app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+    - ssh -i id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/app.tar.gz -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
