@@ -15,7 +15,7 @@ deploy:
   stage: deploy
   image: python:latest
   script:
-    - apk add --no-cache bash
+    - apt-get update && apt-get install -y bash
     - pip install --upgrade awscli
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
