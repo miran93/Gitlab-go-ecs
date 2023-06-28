@@ -1,40 +1,25 @@
 stages:
   - build
-  - package
   - deploy
 
 build:
   stage: build
   image: golang:latest
   script:
-    - go build -o myapp
-
-package:
-  stage: package
-  image: ubuntu:latest
-  before_script:
-    - apt-get update
-    - apt-get install zip -y
-  script:
-    - zip -r $CI_PROJECT_NAME.zip *
-
+    - go build -o app
   artifacts:
     paths:
-      - $CI_PROJECT_NAME.zip
-
+      - app
 
 deploy:
   stage: deploy
-  image: ubuntu:latest
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh 
-    - chmod 400 $id_rsa
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-    - apt-get update -y
-    - apt-get -y install rsync
+  image: amazon/aws-cli:latest
   script:
-    - scp -r -i $id_rsa $CI_PROJECT_NAME.zip $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-    - ssh -i $id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST 'tar -xzf /home/$EC2_USER/$CI_PROJECT_NAME.zip -C /home/$EC2_USER/ && nohup /home/$EC2_USER/app > /dev/null 2>&1 &'
+    - apk add --no-cache bash
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set region $AWS_REGION
+    - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+    - docker build -t $ECR_REPOSITORY:latest .
+    - docker push $ECR_REPOSITORY:latest
+    - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
