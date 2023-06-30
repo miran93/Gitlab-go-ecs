@@ -25,12 +25,10 @@ artifact:
 
 deploy:
   stage: deploy
-  image: public.ecr.aws/bitnami/aws-cli
+  image: bitnami/aws-cli
   script:
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set region $AWS_DEFAULT_REGION
-    - AWS_ECR_LOGIN=$(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
-    - echo $AWS_ECR_LOGIN | docker login --username AWS --password-stdin $ECR_REGISTRY
     - aws s3 cp app.tar.gz s3://your-bucket-name/app.tar.gz
     - aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
