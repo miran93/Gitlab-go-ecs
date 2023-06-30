@@ -1,6 +1,16 @@
 stages:
   - build
+  - artifact
   - deploy
+
+variables:
+  AWS_DEFAULT_REGION: "your_aws_region"
+  AWS_ACCESS_KEY_ID: "your_access_key_id"
+  AWS_SECRET_ACCESS_KEY: "your_secret_access_key"
+  ECR_REGISTRY: "your_ecr_registry"
+  ECR_REPOSITORY: "your_ecr_repository"
+  CLUSTER_NAME: "your_cluster_name"
+  SERVICE_NAME: "your_service_name"
 
 build:
   stage: build
@@ -11,16 +21,29 @@ build:
     paths:
       - app
 
+artifact:
+  stage: artifact
+  image: alpine
+  dependencies:
+    - build
+  script:
+    - tar czf app.tar.gz app
+  artifacts:
+    paths:
+      - app.tar.gz
+
 deploy:
   stage: deploy
   image: python:latest
   script:
-    - apt-get update && apt-get install -y bash
-    - pip install --upgrade awscli
+    - apk add --no-cache bash
+    - apk add --no-cache curl
+    - apk add --no-cache git
+    - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip awscliv2.zip
+    - ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-    - aws configure set region $AWS_REGION
-    - $(aws ecr get-login --no-include-email --region $AWS_REGION)
-    - docker build -t $ECR_REPOSITORY:latest .
-    - docker push $ECR_REPOSITORY:latest
-    - aws ecs update-service --cluster your-cluster-name --service your-service-name --force-new-deployment
+    - aws configure set region $AWS_DEFAULT_REGION
+    - aws s3 cp app.tar.gz s3://bucket-ecs1/app.tar.gz
+    - aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
