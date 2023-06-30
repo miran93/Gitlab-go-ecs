@@ -25,12 +25,12 @@ artifact:
 
 deploy:
   stage: deploy
-  image: bitnami/aws-cli
+  image: alpine
   script:
-    - echo "[default]" > aws-credentials
-    - echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> aws-credentials
-    - echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> aws-credentials
-    - aws configure --profile default --region $AWS_DEFAULT_REGION
+    - apk add --no-cache curl
+    - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    - unzip awscliv2.zip
+    - ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
     - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
     - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
     - aws configure set region $AWS_DEFAULT_REGION
